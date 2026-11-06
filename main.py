@@ -545,11 +545,14 @@ class MainWindow(QMainWindow):
     def readQSettings(self):
         if ARGS_RESET_SETTINGS in sys.argv: return
         
-        geometry = self.settings.value(SETTINGS_GEOMETRY)
-        if geometry: self.restoreGeometry(geometry)
-        toggledButtons:list[JsonCategory] = self.settings.value(SETTINGS_TOGGLED_BUTTONS)
-        for button in self.sortButtons:
-            if not button.category in toggledButtons: button.setChecked(False)
+        try:
+            geometry = self.settings.value(SETTINGS_GEOMETRY)
+            if geometry: self.restoreGeometry(geometry)
+            toggledButtons:list[JsonCategory] = self.settings.value(SETTINGS_TOGGLED_BUTTONS)
+            for button in self.sortButtons:
+                if not button.category in toggledButtons: button.setChecked(False)
+        except TypeError: 
+            return print('This is the first time running Thingamalogger so settings dont exist. Wowww arent you glad i didnt crash')
             
 
 
