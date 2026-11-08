@@ -290,21 +290,21 @@ class PlayerInfoWidget(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         
-        self.time = QTime()
-        self.lastUpdatedTime = self.time.currentTime()
-        self.previousPosition = dict()
-        
-        
         self.titleLabel = QLabel('Player Info', self)
         
         self.positionLabel = QLabel('Position:', self)
-        self.positionXYZLabel = QLabel(self)
+        self.positionXLabel = QLabel(self)
+        self.positionYLabel = QLabel(self)
+        self.positionZLabel = QLabel(self)
         self.rotationLabel = QLabel('Rotation:', self)
-        self.rotationXYZLabel = QLabel(self)
+        self.rotationXLabel = QLabel(self)
+        self.rotationYLabel = QLabel(self)
+        self.rotationZLabel = QLabel(self)
         
-        self.locationLabel = QLabel('Location:', self)
-        self.checkpointLabel = QLabel('Checkpoint:', self)
-        self.lastUpdateLabel = QLabel(self)
+        self.locationDisplayLabel = QLabel('Location:', self)
+        self.locationLabel = QLabel(self)
+        self.checkpointDisplayLabel = QLabel('Checkpoint:', self)
+        self.checkpointLabel = QLabel( self)
         
         
         # Styling
@@ -321,14 +321,21 @@ class PlayerInfoWidget(QWidget):
         
         cordGridLayout = QGridLayout()
         cordGridLayout.addWidget(self.positionLabel, 0, 0)
-        cordGridLayout.addWidget(self.positionXYZLabel, 0, 1)
+        cordGridLayout.addWidget(self.positionXLabel, 0, 1)
+        cordGridLayout.addWidget(self.positionYLabel, 0, 2)
+        cordGridLayout.addWidget(self.positionZLabel, 0, 3)
         cordGridLayout.addWidget(self.rotationLabel, 1, 0)
-        cordGridLayout.addWidget(self.rotationXYZLabel, 1, 1)
+        cordGridLayout.addWidget(self.rotationXLabel, 1, 1)
+        cordGridLayout.addWidget(self.rotationYLabel, 1, 2)
+        cordGridLayout.addWidget(self.rotationZLabel, 1, 3)
+        cordGridLayout.addWidget(self.locationDisplayLabel, 2, 0)
+        cordGridLayout.addWidget(self.locationLabel, 2, 1)
+        cordGridLayout.addWidget(self.checkpointDisplayLabel, 3, 0)
+        cordGridLayout.addWidget(self.checkpointLabel, 3, 1)
         layout.addLayout(cordGridLayout)
         
         layout.addWidget(self.locationLabel)
         layout.addWidget(self.checkpointLabel)
-        layout.addWidget(self.lastUpdateLabel)
         
         self.setLayout(layout)
         
@@ -341,26 +348,15 @@ class PlayerInfoWidget(QWidget):
         rotationZ = playerStateData['playerLocation']['rotation']['z']
         
         
-        self.positionXYZLabel.setText(f"X: {positionX}, Y: {positionY}, Z: {positionZ}")
-        self.rotationXYZLabel.setText(f"X: {rotationX}, Y: {rotationY}, Z: {rotationZ}")
+        self.positionXLabel.setText(f"X: {positionX}")
+        self.positionYLabel.setText(f"Y: {positionY}")
+        self.positionZLabel.setText(f"Z: {positionZ}")
+        self.rotationXLabel.setText(f"X: {rotationX}")
+        self.rotationYLabel.setText(f"Y: {rotationY}")
+        self.rotationZLabel.setText(f"Z: {rotationZ}")
         
-        self.locationLabel.setText(f"Location: {headerData['activeLocationName']}")
-        self.checkpointLabel.setText(f"Checkpoint: {headerData['activeCheckpointName']}")
-        
-        
-        # def timeMilisecondDifference(time1:QTime, time2:QTime) -> int:
-        #     subtractedTime = time2.msecsTo(time1)
-        #     return subtractedTime
-        
-        # def MsecToQTime(miliseconds) -> QTime:
-        #     totalSeconds = round(miliseconds / 1000)
-        #     minutes = math.floor(totalSeconds / 60)
-        #     seconds = totalSeconds - minutes * 60
-        #     return QTime(0, minutes, second=seconds)
-        
-        # differenceInMsec = timeMilisecondDifference(self.time.currentTime(), self.lastUpdatedTime)
-        # updatedOn = MsecToQTime(differenceInMsec)
-        # self.lastUpdateLabel.setText(f"Last updated {updatedOn.toString('mm:ss')} ago")
+        self.locationLabel.setText(headerData['activeLocationName'])
+        self.checkpointLabel.setText(headerData['activeCheckpointName'])
 
 
 class MainWindow(QMainWindow):
