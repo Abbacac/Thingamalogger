@@ -1,4 +1,4 @@
-import sys, os, json
+import sys, os, json, math
 from enum import Enum, Flag, auto
 from pathlib import Path
 from PyQt6.QtWidgets import *
@@ -286,6 +286,81 @@ class Sidebar(QWidget):
             self.config[CONFIG_AUTOSCROLL] = STRING_FALSE
         
         
+class PlayerInfoWidget(QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+        
+        self.time = QTime()
+        self.lastUpdatedTime = self.time.currentTime()
+        self.previousPosition = dict()
+        
+        
+        self.titleLabel = QLabel('Player Info', self)
+        
+        self.positionLabel = QLabel('Position:', self)
+        self.positionXYZLabel = QLabel(self)
+        self.rotationLabel = QLabel('Rotation:', self)
+        self.rotationXYZLabel = QLabel(self)
+        
+        self.locationLabel = QLabel('Location:', self)
+        self.checkpointLabel = QLabel('Checkpoint:', self)
+        self.lastUpdateLabel = QLabel(self)
+        
+        
+        # Styling
+        self.titleLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.titleLabel.setStyleSheet("""
+        font-size: 16px;
+        font-weight: bold;
+                                      """)
+        
+        
+        # Layout
+        layout = QVBoxLayout()
+        layout.addWidget(self.titleLabel)
+        
+        cordGridLayout = QGridLayout()
+        cordGridLayout.addWidget(self.positionLabel, 0, 0)
+        cordGridLayout.addWidget(self.positionXYZLabel, 0, 1)
+        cordGridLayout.addWidget(self.rotationLabel, 1, 0)
+        cordGridLayout.addWidget(self.rotationXYZLabel, 1, 1)
+        layout.addLayout(cordGridLayout)
+        
+        layout.addWidget(self.locationLabel)
+        layout.addWidget(self.checkpointLabel)
+        layout.addWidget(self.lastUpdateLabel)
+        
+        self.setLayout(layout)
+        
+    def updateLables(self, playerStateData:dict, headerData:dict):
+        positionX = playerStateData['playerLocation']['position']['x']
+        positionY = playerStateData['playerLocation']['position']['y']
+        positionZ = playerStateData['playerLocation']['position']['z']
+        rotationX = playerStateData['playerLocation']['rotation']['x']
+        rotationY = playerStateData['playerLocation']['rotation']['y']
+        rotationZ = playerStateData['playerLocation']['rotation']['z']
+        
+        
+        self.positionXYZLabel.setText(f"X: {positionX}, Y: {positionY}, Z: {positionZ}")
+        self.rotationXYZLabel.setText(f"X: {rotationX}, Y: {rotationY}, Z: {rotationZ}")
+        
+        self.locationLabel.setText(f"Location: {headerData['activeLocationName']}")
+        self.checkpointLabel.setText(f"Checkpoint: {headerData['activeCheckpointName']}")
+        
+        
+        # def timeMilisecondDifference(time1:QTime, time2:QTime) -> int:
+        #     subtractedTime = time2.msecsTo(time1)
+        #     return subtractedTime
+        
+        # def MsecToQTime(miliseconds) -> QTime:
+        #     totalSeconds = round(miliseconds / 1000)
+        #     minutes = math.floor(totalSeconds / 60)
+        #     seconds = totalSeconds - minutes * 60
+        #     return QTime(0, minutes, second=seconds)
+        
+        # differenceInMsec = timeMilisecondDifference(self.time.currentTime(), self.lastUpdatedTime)
+        # updatedOn = MsecToQTime(differenceInMsec)
+        # self.lastUpdateLabel.setText(f"Last updated {updatedOn.toString('mm:ss')} ago")
 
 
 class MainWindow(QMainWindow):
@@ -372,8 +447,10 @@ class MainWindow(QMainWindow):
             self.sortNpcsButton,
             self.sortEnemiesButton
         )
-
         self.idList = QListWidget()
+        
+        self.playerInfoWidget = PlayerInfoWidget(self)
+        
         self.saveButton = QPushButton('Save Identifiers')
         self.loadDirectoryButton = QPushButton('Load Save Directory')
         self.loadPreviousDirectoryButton = QPushButton('Load Previous Save Directory')
@@ -419,6 +496,8 @@ class MainWindow(QMainWindow):
         catalogerLayout.addLayout(sortingButtonsLayout)
         
         catalogerLayout.addWidget(self.idList)
+        
+        catalogerLayout.addWidget(self.playerInfoWidget)
         
         bottomButtonBarLayout = QHBoxLayout()
         bottomButtonBarLayout.addWidget(self.saveButton)
@@ -720,13 +799,13 @@ class MainWindow(QMainWindow):
 
         try:
             with open(self.headerJson, 'r', encoding='utf-8') as file:
-                data = json.load(file)
-                self.checkpoint = data[JsonCategory.CHECKPOINT_NAME.value]
-                self.location = data[JsonCategory.LOCATION_NAME.value]
+                headerData = json.load(file)
+                self.checkpoint = headerData[JsonCategory.CHECKPOINT_NAME.value]
+                self.location = headerData[JsonCategory.LOCATION_NAME.value]
 
 
             with open(self.playerStateJson, 'r', encoding='utf-8') as file:
-                data = json.load(file)
+                playerStateData = json.load(file)
     
                 widgets = self.getListIDItemWidgets()
                 existingIds: list[str] = [s.id for s in widgets]
@@ -751,21 +830,23 @@ class MainWindow(QMainWindow):
                     JsonCategory.DEMON_HEARTS
                 )
                 for category in collectablesCategories:
-                    idListPointers[category] += data['collectables'][category.value]
+                    idListPointers[category] += playerStateData['collectables'][category.value]
                 
-                idListPointers[JsonCategory.ITEMS] += data['playerInventory'][JsonCategory.ITEMS.value]
-                idListPointers[JsonCategory.CHECKPOINTS] += data['playerCheckpoints'][JsonCategory.CHECKPOINTS.value]
+                idListPointers[JsonCategory.ITEMS] += playerStateData['playerInventory'][JsonCategory.ITEMS.value]
+                idListPointers[JsonCategory.CHECKPOINTS] += playerStateData['playerCheckpoints'][JsonCategory.CHECKPOINTS.value]
                     
                 
             with open(self.worldStateJson, 'r', encoding='utf-8') as file:
-                data = json.load(file)
-                idListPointers[JsonCategory.NPCS] += data['encounteredNPCs'][JsonCategory.NPCS.value]
-                idListPointers[JsonCategory.ENEMIES] += data['encounteredEnemies'][JsonCategory.ENEMIES.value]
+                worldStateData = json.load(file)
+                idListPointers[JsonCategory.NPCS] += worldStateData['encounteredNPCs'][JsonCategory.NPCS.value]
+                idListPointers[JsonCategory.ENEMIES] += worldStateData['encounteredEnemies'][JsonCategory.ENEMIES.value]
                     
             for category, idList in idListPointers.items():
                 for id in idList:
                     if not id in existingIds:
                         self.newListItem(category, id)
+                        
+            self.playerInfoWidget.updateLables(playerStateData, headerData)
                 
         except PermissionError:
             print('MainWindow.updateList: Couldnt get the permission to write... fuck!')
