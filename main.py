@@ -24,6 +24,7 @@ ARGS_RESET_SETTINGS = '--reset_settings'
 
 SETTINGS_GEOMETRY = 'geometry'
 SETTINGS_TOGGLED_BUTTONS = 'toggledButtons'
+SETTINGS_HIDE_PLAYERINFO = 'hidePlayerInfo'
 
 KEY_NAME = 'name'
 KEY_ID = 'id'
@@ -626,6 +627,7 @@ class MainWindow(QMainWindow):
         self.settings.setValue(SETTINGS_GEOMETRY, self.saveGeometry())
         toggledButtons:list[JsonCategory] = [button.category for button in self.sortButtons if button.isChecked()]
         self.settings.setValue(SETTINGS_TOGGLED_BUTTONS, toggledButtons)
+        self.settings.setValue(SETTINGS_HIDE_PLAYERINFO, STRING_TRUE if self.playerInfoWidget.isHidden() else STRING_FALSE)
                 
     
     def readQSettings(self):
@@ -637,6 +639,10 @@ class MainWindow(QMainWindow):
             toggledButtons:list[JsonCategory] = self.settings.value(SETTINGS_TOGGLED_BUTTONS)
             for button in self.sortButtons:
                 if not button.category in toggledButtons: button.setChecked(False)
+            
+            hidePlayerInfo = self.settings.value(SETTINGS_HIDE_PLAYERINFO)
+            if hidePlayerInfo == STRING_TRUE:
+                self.playerInfoWidget.hide()
         except TypeError: 
             return print('This is the first time running Thingamalogger so settings dont exist. Wowww arent you glad i didnt crash')
             
