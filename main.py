@@ -452,6 +452,7 @@ class MainWindow(QMainWindow):
         self.loadPreviousDirectoryButton = QPushButton('Load Previous Save Directory')
         
         self.showOptionsButton = QPushButton('Toggle Options Sidebar')
+        self.togglePlayerInfoButton = QPushButton('Toggle Player Info')
         self.sidebar = Sidebar(self, self.config)
         
         # Styling
@@ -469,6 +470,7 @@ class MainWindow(QMainWindow):
             button.clicked.connect(self.updateFilters)
             
         self.showOptionsButton.clicked.connect(self.toggleOptionsSidebar)
+        self.togglePlayerInfoButton.clicked.connect(self.togglePlayerInfo)
         
         self.sidebar.refreshintervalSpinBox.valueChanged.connect(self.refreshIntervalChanged)
         
@@ -495,13 +497,16 @@ class MainWindow(QMainWindow):
         
         catalogerLayout.addWidget(self.playerInfoWidget)
         
-        bottomButtonBarLayout = QHBoxLayout()
-        bottomButtonBarLayout.addWidget(self.saveButton)
-        bottomButtonBarLayout.addWidget(self.loadDirectoryButton)
-        bottomButtonBarLayout.addWidget(self.loadPreviousDirectoryButton)
-        catalogerLayout.addLayout(bottomButtonBarLayout)
+        bottomButtonBar1 = QHBoxLayout()
+        bottomButtonBar1.addWidget(self.saveButton)
+        bottomButtonBar1.addWidget(self.loadDirectoryButton)
+        bottomButtonBar1.addWidget(self.loadPreviousDirectoryButton)
+        catalogerLayout.addLayout(bottomButtonBar1)
         
-        catalogerLayout.addWidget(self.showOptionsButton)
+        bottomButtonBar2 = QHBoxLayout()
+        bottomButtonBar2.addWidget(self.showOptionsButton)
+        bottomButtonBar2.addWidget(self.togglePlayerInfoButton)
+        catalogerLayout.addLayout(bottomButtonBar2)
         
         mainLayout.addLayout(catalogerLayout)
         mainLayout.addWidget(self.sidebar)
@@ -518,6 +523,12 @@ class MainWindow(QMainWindow):
             self.sidebar.show()
         else:
             self.sidebar.hide()
+            
+    def togglePlayerInfo(self):
+        if self.playerInfoWidget.isHidden():
+            self.playerInfoWidget.show()
+        else:
+            self.playerInfoWidget.hide()
             
             
     def refreshIntervalChanged(self):
